@@ -7,20 +7,33 @@
 # Taken from here: https://bbs.archlinux.org/viewtopic.php?id=88967
 
 import sys
+import re
 
 # You can add or change the functions to parse the properties of each AP (cell)
 # below. They take one argument, the bunch of text describing one cell in iwlist
 # scan and return a property of that cell.
 
 def get_name(cell):
-    return matching_line(cell,"ESSID:")[1:-1]
+    return '"' + matching_line(cell,"ESSID:")[1:-1] + '"'
 
 def get_quality(cell):
     quality = matching_line(cell,"Quality=").split()[0].split('/')
-    return str(int(round(float(quality[0]) / float(quality[1]) * 100))).rjust(3) + " %"
+    return str(int(round(float(quality[0]) / float(quality[1]) * 100))).rjust(3)
+
+def get_signal(cell):
+    quality = matching_line(cell,"Quality=").split()[2].split('=')
+    return str(quality[1]).rjust(3)
+
+def get_noise(cell):
+    quality = matching_line(cell,"Quality=").split()[5].split('=')
+    return str(quality[1]).rjust(3)
 
 def get_channel(cell):
-    return matching_line(cell,"Channel:")
+    l = matching_line(cell,"Channel:")
+    if l is not None:
+        return l
+    l = matching_line(cell,"Frequency:")
+    return re.match('(.*) GHz \(Channel (.*)\)', l).group(2)
 
 def get_encryption(cell):
     enc=""
@@ -32,7 +45,7 @@ def get_encryption(cell):
             if matching!=None:
                 wpa=match(matching,"WPA Version ")
                 if wpa!=None:
-                    enc="WPA v."+wpa
+                    enc='"' + "WPA v."+wpa + '"'
         if enc=="":
             enc="WEP"
     return enc
@@ -46,6 +59,8 @@ def get_address(cell):
 
 rules={"Name":get_name,
        "Quality":get_quality,
+       "Signal":get_signal,
+       "Noise":get_noise,
        "Channel":get_channel,
        "Encryption":get_encryption,
        "Address":get_address,
@@ -62,7 +77,7 @@ def sort_cells(cells):
 # You can choose which columns to display here, and most importantly in what order. Of
 # course, they must exist as keys in the dict rules.
 
-columns=["Name","Address","Quality","Channel","Encryption"]
+columns=["Name","Address","Quality","Signal","Noise","Channel","Encryption"]
 
 
 
