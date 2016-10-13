@@ -147,6 +147,9 @@ def mainFile():
     for line in sys.stdin:
         cell_line = match(line,"Cell ")
         if cell_line != None:
+            cell_zero = match(cell_line,"01 - ")
+            if cell_zero != None:
+                cells=[[]]
             cells.append([])
             line = cell_line[-27:]
         cells[-1].append(line.rstrip())
