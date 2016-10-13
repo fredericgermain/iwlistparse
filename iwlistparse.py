@@ -139,7 +139,7 @@ def print_cells(cells):
         table.append(cell_properties)
     print_table(table)
 
-def main():
+def mainFile():
     """Pretty prints the output of iwlist scan into a table"""
     cells=[[]]
     parsed_cells=[]
@@ -160,4 +160,25 @@ def main():
 
     print_cells(parsed_cells)
 
-main()
+def print_line(cell):
+    widths=[20, 20, 4, 4, 4, 4, 10]
+    for i,el in enumerate(columns):
+        sys.stdout.write(cell[el].ljust(widths[i]+2))
+    sys.stdout.write('\n')
+    sys.stdout.flush()
+
+def mainStream():
+    cell = None
+    """Pretty prints the output of iwlist scan into a table"""
+    for line in sys.stdin:
+        cell_line = match(line,"Cell ")
+        if cell_line != None:
+            if cell != None:
+                print_line(parse_cell(cell))
+            cell = []
+            line = re.match('Cell ([0-9]*) - (Address: .*)', line.strip()).group(2)
+        if cell is not None:            
+            cell.append(line.rstrip())
+
+mainStream()
+#mainFile()
